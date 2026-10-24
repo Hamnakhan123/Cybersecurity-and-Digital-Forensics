@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Alert Dashboard</title>
+  <link rel="stylesheet" href="theme.css">          <!-- external (not shipped) -->
+  <style>                                            /* internal style sheet */
+    :root { --danger: #c0392b; --ok: #27ae60; --gap: 1rem; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f4f6f8; color: #222; }
+    h1 { text-align: center; letter-spacing: 1px; }
+    .card {
+      width: 300px; padding: var(--gap); margin: var(--gap) auto;
+      border: 2px solid #ccc; border-radius: 8px; background: #fff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+    .card.critical { border-color: var(--danger); }
+    #summary { font-weight: bold; }
+    a:hover { text-decoration: underline; }
+    li:nth-child(odd) { background: #eef; }
+    .badge::before { content: "⚠ "; }
+    @media (max-width: 600px) { .card { width: 100%; } }
+    @keyframes pulse { from { opacity: 1; } to { opacity: 0.4; } }
+    .critical .badge { animation: pulse 1s infinite alternate; color: var(--danger); }
+  </style>
+</head>
+<body>
+  <h1>SOC Alert Dashboard</h1>
+  <p id="summary">2 open alerts</p>
+  <div class="card critical"><span class="badge">Critical</span> Brute force on SSH</div>
+  <div class="card"><span class="badge">Low</span> New device joined Wi-Fi</div>
+  <p style="color: gray;">Inline style: highest priority after !important.</p>
+  <ul><li>Alert 1</li><li>Alert 2</li><li>Alert 3</li></ul>
+</body>
+</html>
