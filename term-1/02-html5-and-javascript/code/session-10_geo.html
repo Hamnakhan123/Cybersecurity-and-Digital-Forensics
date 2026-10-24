@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Lab Check-in</title></head>
+<body>
+  <h1>Lab check-in</h1>
+  <p>We only check that you are near the lab. Your exact position is never stored.</p>
+  <button id="checkin">Check in</button>
+  <p id="out" aria-live="polite"></p>
+
+  <script>
+    const LAB = { lat: 24.8607, lon: 67.0011 };     // example point in Karachi
+    const out = document.getElementById("out");
+
+    function distanceKm(a, b) {                       // haversine formula
+      const R = 6371, rad = d => d * Math.PI / 180;
+      const dLat = rad(b.lat - a.lat), dLon = rad(b.lon - a.lon);
+      const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLon / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(h));
+    }
+
+    document.getElementById("checkin").addEventListener("click", () => {
+      if (!("geolocation" in navigator)) { out.textContent = "Geolocation not supported."; return; }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const me = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+          const d = distanceKm(me, LAB);
+          out.textContent = d <= 0.5 ? "Checked in ✔" : `You are ${d.toFixed(1)} km away from the lab.`;
+          // Send only the yes/no result to the server, not the coordinates
+          fetch("/api/checkin", { method: "POST", headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ present: d <= 0.5 }) });
+        },
+        (err) => {
+          const why = { 1: "permission denied", 2: "position unavailable", 3: "timed out" }[err.code];
+          out.textContent = "Could not get location: " + why;
+        },
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+      );
+    });
+  </script>
+</body>
+</html>
