@@ -5,7 +5,7 @@
 | # | Module | Sessions |
 |---|---|---|
 | 1 | [Programming in C](01-programming-in-c/README.md) | 9 |
-| 2 | Client-Side Scripting with HTML5 & JavaScript · *coming soon* | 10 |
+| 2 | [Client-Side Scripting with HTML5 & JavaScript](02-html5-and-javascript/README.md) | 10 |
 | 3 | Technologies of Computer Networks · *coming soon* | 14 |
 | 4 | Configuring Network Infrastructure · *coming soon* | 15 |
 | 5 | Introduction to Cyber Security Frameworks · *coming soon* | 4 |
