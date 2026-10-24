@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Failed Logins Chart</title></head>
+<body>
+  <h1>Failed logins per hour</h1>
+  <canvas id="chart" width="420" height="220" role="img" aria-label="Bar chart of failed logins">
+    Your browser does not support canvas.
+  </canvas>
+  <p>Theme: <button id="dark">Dark</button> <button id="light">Light</button> · Visits: <span id="visits"></span></p>
+
+  <script>
+    const data = [{ h: "08", n: 4 }, { h: "09", n: 12 }, { h: "10", n: 30 }, { h: "11", n: 7 }, { h: "12", n: 2 }];
+    const canvas = document.getElementById("chart");
+    const ctx = canvas.getContext("2d");
+
+    function draw(theme) {
+      ctx.fillStyle = theme === "dark" ? "#111" : "#fff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);          // background
+      const max = Math.max(...data.map(d => d.n)), base = 190, barW = 50, gap = 30;
+      data.forEach((d, i) => {
+        const x = 40 + i * (barW + gap), h = Math.round((d.n / max) * 160);
+        ctx.fillStyle = d.n >= 20 ? "#c0392b" : "#2e86de";
+        ctx.fillRect(x, base - h, barW, h);                       // bar
+        ctx.fillStyle = theme === "dark" ? "#eee" : "#222";
+        ctx.font = "12px sans-serif";
+        ctx.fillText(d.h + ":00", x + 8, base + 15);              // label
+        ctx.fillText(d.n, x + 18, base - h - 5);                  // value
+      });
+      ctx.beginPath(); ctx.moveTo(30, base); ctx.lineTo(410, base); ctx.stroke();   // axis
+    }
+
+    // Web Storage: remember the theme (localStorage) and count visits this tab (sessionStorage)
+    const theme = localStorage.getItem("theme") || "light";
+    draw(theme);
+    document.getElementById("dark").onclick = () => { localStorage.setItem("theme", "dark"); draw("dark"); };
+    document.getElementById("light").onclick = () => { localStorage.setItem("theme", "light"); draw("light"); };
+    const visits = Number(sessionStorage.getItem("visits") || 0) + 1;
+    sessionStorage.setItem("visits", visits);
+    document.getElementById("visits").textContent = visits;
+  </script>
+</body>
+</html>
