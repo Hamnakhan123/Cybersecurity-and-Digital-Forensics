@@ -1,0 +1,11 @@
+! Session 10 - Send device logs to a central syslog server and keep time accurate
+service timestamps log datetime msec localtime show-timezone
+clock timezone PKT 5
+ntp server 10.1.0.1                      ! every device must agree on the time
+logging host 10.1.0.50                   ! central syslog collector (UDP 514)
+logging trap warnings                    ! send severity 0-4 to the server
+logging buffered 64000 informational     ! keep a local copy in RAM
+logging source-interface Loopback0
+snmp-server group MONITOR v3 priv
+snmp-server user nms MONITOR v3 auth sha Auth#Pass2026 priv aes 128 Priv#Pass2026
+! verify: show logging | show ntp status | show clock
