@@ -1,0 +1,22 @@
+! Session 6 - First configuration of a router in Cisco Packet Tracer (lab only)
+! Topology: PC0 -- Gi0/0 [R1] Gi0/1 -- PC1
+enable                                   ! user EXEC (>)  -> privileged EXEC (#)
+configure terminal                       ! -> global configuration (config)#
+ hostname R1
+ enable secret Lab#Secret2026            ! hashed password for privileged mode
+ no ip domain-lookup                     ! typo commands do not hang on DNS lookups
+ banner motd #Authorised lab use only#
+ interface GigabitEthernet0/0
+  description LAN-A
+  ip address 192.168.1.1 255.255.255.0
+  no shutdown                            ! router interfaces are OFF by default
+ exit
+ interface GigabitEthernet0/1
+  description LAN-B
+  ip address 192.168.2.1 255.255.255.0
+  no shutdown
+ exit
+end
+copy running-config startup-config       ! save, or the config is lost on reboot
+show ip interface brief                  ! verify: Status up, Protocol up
+show ip route                            ! C = connected, L = local
