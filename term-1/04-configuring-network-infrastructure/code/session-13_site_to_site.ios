@@ -1,0 +1,39 @@
+! Session 13 - Site-to-site VPN: GRE tunnel protected by IPsec (IKEv2), lab addresses only
+! Karachi R1: LAN 10.1.0.0/16, internet 198.51.100.1  |  Lahore R2: LAN 10.2.0.0/16, internet 203.0.113.1
+
+! ===== R1 (Karachi) =====
+crypto ikev2 proposal PROP-AES
+ encryption aes-cbc-256
+ integrity sha256
+ group 14                                     ! 2048-bit Diffie-Hellman
+crypto ikev2 policy POL-1
+ proposal PROP-AES
+crypto ikev2 keyring KR
+ peer LAHORE
+  address 203.0.113.1
+  pre-shared-key Vpn@Lab-Use-A-Long-Random-Key-26
+crypto ikev2 profile PROF-LAHORE
+ match identity remote address 203.0.113.1 255.255.255.255
+ authentication remote pre-share
+ authentication local pre-share
+ keyring local KR
+crypto ipsec transform-set TS esp-gcm 256      ! ESP with AES-GCM: encryption + integrity
+ mode transport                               ! GRE already adds the outer header
+crypto ipsec profile VPN-PROF
+ set transform-set TS
+ set ikev2-profile PROF-LAHORE
+
+interface Tunnel0
+ ip address 172.16.0.1 255.255.255.252
+ ip mtu 1400                                  ! leave room for GRE + ESP headers
+ ip tcp adjust-mss 1360
+ tunnel source GigabitEthernet0/1
+ tunnel destination 203.0.113.1
+ tunnel protection ipsec profile VPN-PROF      ! encrypt everything entering the tunnel
+
+ip route 10.2.0.0 255.255.0.0 172.16.0.2      ! or run OSPF over Tunnel0
+
+! R2 mirrors this: peer 198.51.100.1, tunnel 172.16.0.2, destination 198.51.100.1, route to 10.1.0.0/16
+
+! verify: show crypto ikev2 sa | show crypto ipsec sa (encaps/decaps counters rise)
+!         show interfaces tunnel0 | ping 10.2.0.1 source 10.1.0.1
