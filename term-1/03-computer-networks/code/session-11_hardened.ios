@@ -1,0 +1,18 @@
+! Session 11 - The audited device after remediation (compare with session-11_router.cfg)
+no enable password
+enable algorithm-type scrypt secret Str0ng#Enable2026
+service password-encryption
+no ip http server
+no ip http secure-server
+no snmp-server community public
+ip ssh version 2
+login block-for 120 attempts 5 within 60     ! slow down password guessing
+interface GigabitEthernet0/2
+ description UNUSED
+ shutdown
+line vty 0 4
+ exec-timeout 10 0
+ transport input ssh
+ login local
+ access-class 10 in                          ! only the admin subnet may SSH
+access-list 10 permit 10.1.9.0 0.0.0.255
