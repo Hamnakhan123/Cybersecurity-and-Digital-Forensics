@@ -1,0 +1,39 @@
+! Session 9 - NTP, DHCP, DNS and TFTP on Cisco IOS (lab only)
+
+! ----- NTP: R1 is the lab time source, others sync from it -----
+! R1
+ntp master 3                                   ! lab only: act as stratum 3 when no real source exists
+clock timezone PKT 5
+! SW1 and R2
+ntp server 192.168.99.1                        ! sync from R1
+ntp authenticate
+ntp authentication-key 1 md5 Ntp@Lab26
+ntp trusted-key 1
+service timestamps log datetime msec localtime ! log lines carry the correct time
+! verify: show ntp status | show ntp associations | show clock detail
+
+! ----- DHCP server on R1 for VLAN 10 -----
+ip dhcp excluded-address 192.168.10.1 192.168.10.20   ! gateways, servers, printers stay static
+ip dhcp pool LECTURERS
+ network 192.168.10.0 255.255.255.0
+ default-router 192.168.10.1
+ dns-server 192.168.99.53
+ domain-name lab.local
+ lease 1                                       ! days
+exit
+! DHCP relay: VLAN 20 has no DHCP server, so its gateway forwards requests
+interface GigabitEthernet0/0.20
+ ip helper-address 192.168.99.10               ! central DHCP server
+! verify: show ip dhcp binding | show ip dhcp pool | show ip dhcp conflict
+
+! ----- DNS on the router -----
+ip domain-name lab.local
+ip name-server 192.168.99.53                   ! router resolves names through this server
+ip domain-lookup
+ip host fileserver 192.168.99.20               ! static host entry
+! verify: show hosts | ping fileserver
+
+! ----- TFTP backup and restore -----
+! copy running-config tftp:                    (address 192.168.99.30, file R1-confg)
+! copy tftp: running-config                    (merge a saved config back)
+! copy flash: tftp:                            (back up the IOS image)
