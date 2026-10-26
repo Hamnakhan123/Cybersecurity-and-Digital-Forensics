@@ -1,0 +1,49 @@
+! Session 4 - First configuration of a Cisco switch/router (Cisco Packet Tracer lab)
+! Topology: PC1 -- Fa0/1 [SW1] Gi0/1 -- Gi0/0 [R1]
+! Type line by line. Text after "!" is a comment and is ignored by IOS.
+
+enable                                    ! user EXEC (R1>)  ->  privileged EXEC (R1#)
+clock set 09:30:00 26 Oct 2026            ! set the software clock (privileged EXEC, not config mode)
+configure terminal                        ! -> global configuration mode R1(config)#
+ hostname R1                              ! prompt changes to R1(config)#
+ no ip domain-lookup                      ! a mistyped command is not treated as a host name to resolve
+ clock timezone PKT 5                     ! Pakistan Standard Time, UTC+5
+ enable secret Lab@Secret2026             ! privileged-mode password, stored as a strong hash
+ service password-encryption              ! hides type-7 line passwords in the config (weak, but better than clear text)
+ banner motd # Authorised access only. Activity is logged. #
+ !
+ ! ----- interfaces -----
+ interface GigabitEthernet0/0
+  description LINK-TO-SW1
+  ip address 192.168.10.1 255.255.255.0
+  no shutdown                             ! router interfaces are shut down by default
+ exit
+ interface GigabitEthernet0/1
+  description LINK-TO-ISP-LAB
+  ip address 203.0.113.2 255.255.255.252
+  no shutdown
+ exit
+ !
+ ! ----- console and remote access -----
+ line console 0
+  password Console@2026
+  login
+  logging synchronous                     ! log messages do not break the line you are typing
+  exec-timeout 10 0                       ! log out after 10 idle minutes
+ exit
+ ip domain-name lab.local
+ username admin privilege 15 secret Admin@2026
+ crypto key generate rsa modulus 2048     ! needed before SSH can start
+ ip ssh version 2
+ line vty 0 4
+  login local
+  transport input ssh                     ! SSH only, Telnet is refused
+  exec-timeout 10 0
+ exit
+end
+copy running-config startup-config        ! save: RAM (running) -> NVRAM (startup)
+
+! ----- verify -----
+! show clock                  show version            show running-config
+! show ip interface brief     show interfaces Gi0/0   show startup-config
+! show flash:                 show history            show ip ssh
