@@ -1,0 +1,33 @@
+! Session 7 - RIPv2, OSPF and EIGRP on router R1 (Cisco Packet Tracer lab)
+! R1 LANs: 192.168.1.0/24 ; link to R2: 10.0.12.0/30
+! Configure ONE protocol at a time in the lab and compare the routing tables.
+
+! ---------- RIP version 2 (distance vector, metric = hop count, max 15) ----------
+router rip
+ version 2
+ no auto-summary                    ! send real subnet masks (classless)
+ network 192.168.1.0
+ network 10.0.0.0
+ passive-interface GigabitEthernet0/0   ! no updates out to the user LAN
+exit
+! verify: show ip route rip   |  show ip protocols  |  debug ip rip
+
+! ---------- OSPF (link state, cost = reference bandwidth / bandwidth) ----------
+router ospf 1
+ router-id 1.1.1.1
+ auto-cost reference-bandwidth 100000   ! 100 Gbps reference, set the same on ALL routers
+ network 192.168.1.0 0.0.0.255 area 0   ! wildcard mask = inverse of subnet mask
+ network 10.0.12.0 0.0.0.3 area 0
+ passive-interface GigabitEthernet0/0
+exit
+! verify: show ip ospf neighbor (state FULL)  |  show ip route ospf  |  show ip ospf interface brief
+
+! ---------- EIGRP (advanced distance vector, DUAL, bandwidth + delay) ----------
+router eigrp 100                        ! AS number must match on neighbours
+ eigrp router-id 1.1.1.1
+ no auto-summary
+ network 192.168.1.0 0.0.0.255
+ network 10.0.12.0 0.0.0.3
+ passive-interface GigabitEthernet0/0
+exit
+! verify: show ip eigrp neighbors  |  show ip eigrp topology (successor / feasible successor)
