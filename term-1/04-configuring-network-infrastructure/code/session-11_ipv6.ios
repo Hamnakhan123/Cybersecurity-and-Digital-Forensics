@@ -1,0 +1,35 @@
+! Session 11 - IPv6 addressing, SLAAC/DHCPv6, static routes and OSPFv3 (lab only)
+! R1 Gi0/0 = LAN 2001:db8:acad:10::/64, Gi0/1 = link to R2 2001:db8:acad:12::/64
+
+ipv6 unicast-routing                            ! makes the router forward IPv6 and send RAs
+
+interface GigabitEthernet0/0
+ ipv6 address 2001:db8:acad:10::1/64
+ ipv6 address fe80::1 link-local               ! easy-to-read gateway link-local
+ ipv6 nd other-config-flag                     ! O flag: SLAAC address + stateless DHCPv6 for DNS
+ ipv6 dhcp server LAN-STATELESS
+ ipv6 ospf 1 area 0
+ no shutdown
+interface GigabitEthernet0/1
+ ipv6 address 2001:db8:acad:12::1/64
+ ipv6 ospf 1 area 0
+ no shutdown
+
+ipv6 dhcp pool LAN-STATELESS
+ dns-server 2001:db8:acad:99::53
+ domain-name lab.local
+
+! Static routing alternative (use static OR OSPFv3 in the lab, not both)
+! ipv6 route 2001:db8:acad:20::/64 2001:db8:acad:12::2          ! next-hop global address
+! ipv6 route 2001:db8:acad:20::/64 GigabitEthernet0/1 fe80::2   ! link-local needs the exit interface
+! ipv6 route ::/0 2001:db8:acad:12::2                           ! default route
+
+ipv6 router ospf 1
+ router-id 1.1.1.1                             ! OSPFv3 still uses a 32-bit router ID
+
+! Stateful DHCPv6 (M flag) would instead use:
+!  ipv6 nd managed-config-flag
+!  ipv6 dhcp pool LAN-STATEFUL / address prefix 2001:db8:acad:10::/64
+
+! verify: show ipv6 interface brief | show ipv6 route | show ipv6 neighbors
+!         show ipv6 ospf neighbor   | show ipv6 dhcp pool | ping 2001:db8:acad:20::1
