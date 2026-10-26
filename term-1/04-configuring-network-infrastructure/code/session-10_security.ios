@@ -1,0 +1,43 @@
+! Session 10 - ACLs, DHCP snooping, DAI and port security (Cisco Packet Tracer lab)
+
+! ----- Standard ACL: only the management VLAN may open SSH sessions -----
+ip access-list standard MGMT-ONLY
+ permit 192.168.99.0 0.0.0.255
+ deny any log                                  ! the implicit deny, made visible and logged
+line vty 0 4
+ access-class MGMT-ONLY in
+ transport input ssh
+
+! ----- Extended ACL: what the STUDENTS VLAN may reach (place close to the SOURCE) -----
+ip access-list extended STUDENTS-IN
+ permit tcp 192.168.20.0 0.0.0.255 host 192.168.30.10 eq 443
+ permit udp 192.168.20.0 0.0.0.255 host 192.168.30.53 eq 53
+ deny   ip  192.168.20.0 0.0.0.255 192.168.10.0 0.0.0.255
+ permit icmp 192.168.20.0 0.0.0.255 any
+ permit tcp 192.168.20.0 0.0.0.255 any eq 443
+ deny   ip any any log
+interface GigabitEthernet0/0.20
+ ip access-group STUDENTS-IN in
+! verify: show access-lists (hit counters) | show ip interface Gi0/0.20
+
+! ----- DHCP snooping + Dynamic ARP Inspection on the access switch -----
+ip dhcp snooping
+ip dhcp snooping vlan 10,20
+no ip dhcp snooping information option        ! needed when the server does not expect option 82
+interface GigabitEthernet0/1
+ description UPLINK-TO-DHCP-SERVER
+ ip dhcp snooping trust                        ! only here may OFFER/ACK enter
+ ip arp inspection trust
+interface range FastEthernet0/1 - 24
+ ip dhcp snooping limit rate 10                ! starvation protection (packets per second)
+ip arp inspection vlan 10,20                  ! check ARP against the snooping bindings
+! verify: show ip dhcp snooping | show ip dhcp snooping binding | show ip arp inspection
+
+! ----- Port security: at most 2 MAC addresses per desk port -----
+interface range FastEthernet0/1 - 24
+ switchport mode access
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security mac-address sticky
+ switchport port-security violation restrict   ! drop and log, keep the port up
+! verify: show port-security | show port-security interface Fa0/1
