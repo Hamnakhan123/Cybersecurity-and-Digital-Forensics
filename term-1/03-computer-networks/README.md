@@ -2,7 +2,7 @@
 
 > [Cybersecurity and Digital Forensics](../../README.md) › [Term 1](../README.md) › **Module 3**
 
-| ⬅ [Previous module](../02-html5-and-javascript/README.md) | [Term 1 overview](../README.md) ➡ |
+| ⬅ [Previous module](../02-html5-and-javascript/README.md) | [Next module](../04-configuring-network-infrastructure/README.md) ➡ |
 |:---|---:|
 
 ---
