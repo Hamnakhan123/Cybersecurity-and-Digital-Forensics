@@ -1,0 +1,43 @@
+! Session 12 - Inter-VLAN routing: router-on-a-stick vs Layer 3 switch SVIs (lab)
+
+! ===== Option A: router-on-a-stick (R1 Gi0/0 is an 802.1Q trunk to SW1) =====
+interface GigabitEthernet0/0
+ no shutdown
+interface GigabitEthernet0/0.10
+ encapsulation dot1Q 10
+ ip address 192.168.10.1 255.255.255.0
+interface GigabitEthernet0/0.20
+ encapsulation dot1Q 20
+ ip address 192.168.20.1 255.255.255.0
+interface GigabitEthernet0/0.99
+ encapsulation dot1Q 99 native
+ ip address 192.168.99.1 255.255.255.0
+
+! ===== Option B: multilayer switch MLS1 with SVIs =====
+ip routing                                   ! turn the switch into a router (off by default)
+vlan 10
+ name LECTURERS
+vlan 20
+ name STUDENTS
+vlan 30
+ name SERVERS
+interface Vlan10
+ ip address 192.168.10.1 255.255.255.0
+ no shutdown
+interface Vlan20
+ ip address 192.168.20.1 255.255.255.0
+ ip helper-address 192.168.30.67              ! DHCP relay to the server VLAN
+ no shutdown
+interface Vlan30
+ ip address 192.168.30.1 255.255.255.0
+ no shutdown
+! routed (no switchport) uplink to the edge router
+interface GigabitEthernet1/0/48
+ no switchport
+ ip address 10.0.0.2 255.255.255.252
+ip route 0.0.0.0 0.0.0.0 10.0.0.1
+! CEF is on by default on multilayer switches; confirm with: show ip cef
+
+! An SVI is up/up only when the VLAN exists AND at least one port in that VLAN is up (or a trunk carries it).
+! verify: show ip interface brief | show ip route | show ip cef | show adjacency detail
+!         show interfaces trunk    | ping 192.168.20.22 source vlan 10
