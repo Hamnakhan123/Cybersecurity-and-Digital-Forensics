@@ -1,0 +1,34 @@
+! Session 8 - VLANs, access ports, a trunk and Dynamic ARP Inspection on switch SW1
+vlan 10
+ name STAFF
+vlan 20
+ name VOICE
+vlan 99
+ name NATIVE-UNUSED
+exit
+interface range FastEthernet0/1 - 12
+ switchport mode access
+ switchport access vlan 10
+ switchport voice vlan 20
+ switchport nonegotiate                  ! no DTP: an attacker cannot negotiate a trunk
+ spanning-tree portfast
+exit
+interface GigabitEthernet0/1             ! uplink to the distribution switch
+ switchport mode trunk
+ switchport trunk native vlan 99         ! unused native VLAN stops VLAN hopping by double tagging
+ switchport trunk allowed vlan 10,20
+ switchport nonegotiate
+exit
+interface range FastEthernet0/13 - 24    ! unused ports: shut and park them
+ switchport access vlan 999
+ shutdown
+exit
+! Defend ARP: DHCP snooping builds the IP-MAC binding table, DAI checks ARP against it
+ip dhcp snooping
+ip dhcp snooping vlan 10
+ip arp inspection vlan 10
+interface GigabitEthernet0/1
+ ip dhcp snooping trust
+ ip arp inspection trust
+exit
+! verify: show vlan brief | show interfaces trunk | show ip arp inspection | show mac address-table
