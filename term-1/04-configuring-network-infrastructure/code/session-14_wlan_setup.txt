@@ -1,0 +1,27 @@
+Session 14 - WLAN configuration checklist (Cisco Packet Tracer: WLC-2504 + LAP-PT, or a home lab AP)
+
+1. Wired side first
+   - Switch: VLAN 10 Staff, VLAN 20 Students, VLAN 99 Management.
+   - AP port: access port in VLAN 99 (lightweight AP) or trunk carrying 10,20,99 (FlexConnect/autonomous).
+   - DHCP: pools for 10, 20, 99. Option 43 or DNS name CISCO-CAPWAP-CONTROLLER points APs to the WLC.
+   - PoE on AP ports.
+
+2. Controller (WLC) basics
+   - Management interface 192.168.99.2/24, gateway 192.168.99.1, NTP server, syslog server.
+   - Dynamic interfaces: staff -> VLAN 10, students -> VLAN 20.
+   - APs join over CAPWAP (UDP 5246 control, 5247 data); check "All APs" shows them registered.
+
+3. WLANs
+   - Campus-Staff : WPA3-Enterprise (or WPA2-Enterprise), 802.1X, RADIUS server 192.168.99.20 (UDP 1812/1813), PMF required, interface staff.
+   - Campus-Students : WPA2/WPA3-Personal transition, AES only, 16+ char random PSK, PMF optional, interface students, client isolation optional.
+   - Guest : separate VLAN, internet only (ACL), captive portal, rate limit, no access to campus subnets.
+
+4. RF
+   - 2.4 GHz: channels 1, 6, 11 only, 20 MHz width.
+   - 5 GHz: 20/40 MHz in dense areas, non-overlapping channels, DFS where allowed.
+   - Let RRM adjust power/channels, then verify with a survey.
+
+5. Verify
+   - Client gets an IP in the right VLAN, correct gateway and DNS.
+   - Signal at seats >= -67 dBm; roaming works between APs.
+   - Old WEP/TKIP SSIDs removed; rogue AP detection on; logs reach syslog.
