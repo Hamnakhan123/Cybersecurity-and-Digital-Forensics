@@ -1,0 +1,44 @@
+! Session 7 - Static, default, floating static and OSPF (single and multi-area) - lab only
+! R1 (area 0) --10.0.12.0/30-- R2 (ABR, areas 0 and 1) --10.0.23.0/30-- R3 (area 1)
+! R1 also has a slow backup link to R3: 10.0.13.0/30
+
+! ===== R1: static routing with IPv4 and IPv6 =====
+ipv6 unicast-routing
+ip route 192.168.3.0 255.255.255.0 10.0.12.2                 ! static route via next hop
+ip route 192.168.3.0 255.255.255.0 10.0.13.2 130             ! floating static: AD 130 > OSPF 110
+ip route 0.0.0.0 0.0.0.0 203.0.113.1                         ! default route to the ISP (lab address)
+ipv6 route 2001:db8:3::/64 2001:db8:12::2                    ! IPv6 static route
+ipv6 route 2001:db8:3::/64 2001:db8:13::2 130                ! IPv6 floating static
+ipv6 route ::/0 2001:db8:ffff::1                             ! IPv6 default route
+
+! ===== R1: OSPFv2 single area =====
+router ospf 1
+ router-id 1.1.1.1
+ auto-cost reference-bandwidth 100000
+ passive-interface GigabitEthernet0/0          ! user LAN: advertise it, but send no hellos
+ network 192.168.1.0 0.0.0.255 area 0
+ network 10.0.12.0 0.0.0.3 area 0
+ default-information originate                 ! share the default route with OSPF neighbours
+exit
+
+! ===== R2: Area Border Router (multi-area) =====
+router ospf 1
+ router-id 2.2.2.2
+ auto-cost reference-bandwidth 100000
+ network 10.0.12.0 0.0.0.3 area 0              ! backbone side
+ network 10.0.23.0 0.0.0.3 area 1              ! area 1 side
+ area 1 range 192.168.0.0 255.255.248.0        ! summarise area 1 routes into area 0
+exit
+
+! ===== R3: area 1 only, configured on the interface instead of network statements =====
+router ospf 1
+ router-id 3.3.3.3
+interface GigabitEthernet0/1
+ ip ospf 1 area 1
+interface GigabitEthernet0/0
+ ip ospf 1 area 1
+
+! verify:
+! show ip route            show ip route static          show ipv6 route
+! show ip ospf neighbor    show ip ospf interface brief  show ip ospf database
+! show ip protocols        (O = intra-area route, O IA = inter-area route)
