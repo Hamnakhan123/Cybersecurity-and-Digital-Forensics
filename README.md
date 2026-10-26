@@ -26,7 +26,7 @@ flowchart LR
 1. [Programming in C](term-1/01-programming-in-c/README.md) · 9 sessions
 2. [Client-Side Scripting with HTML5 & JavaScript](term-1/02-html5-and-javascript/README.md) · 10 sessions
 3. [Technologies of Computer Networks](term-1/03-computer-networks/README.md) · 14 sessions
-4. Configuring Network Infrastructure · *coming soon*
+4. [Configuring Network Infrastructure](term-1/04-configuring-network-infrastructure/README.md) · 15 sessions
 5. Introduction to Cyber Security Frameworks · *coming soon*
 6. Foundations of Ethical Hacking · *coming soon*
 7. Data Security and Information Protection · *coming soon*
