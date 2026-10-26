@@ -1,0 +1,39 @@
+! Session 8 - HSRP v2 with preemption and tracking, plus VRRP and GLBP equivalents (lab)
+! LAN 192.168.10.0/24, virtual gateway 192.168.10.1, R1 = .2 (Active), R2 = .3 (Standby)
+
+! ===== R1 =====
+track 1 interface GigabitEthernet0/1 line-protocol   ! watch the uplink to the core/ISP
+interface GigabitEthernet0/0
+ ip address 192.168.10.2 255.255.255.0
+ standby version 2
+ standby 10 ip 192.168.10.1                           ! the address hosts use as gateway
+ standby 10 priority 110                              ! higher than default 100 -> Active
+ standby 10 preempt                                   ! take the role back after recovery
+ standby 10 authentication md5 key-string Hsrp@Lab26  ! stop rogue routers joining the group
+ standby 10 track 1 decrement 20                      ! uplink down -> priority 90 -> R2 takes over
+ no shutdown
+
+! ===== R2 =====
+interface GigabitEthernet0/0
+ ip address 192.168.10.3 255.255.255.0
+ standby version 2
+ standby 10 ip 192.168.10.1
+ standby 10 preempt
+ standby 10 authentication md5 key-string Hsrp@Lab26
+ no shutdown
+
+! ===== Same idea with VRRP (open standard) on R1 =====
+! interface GigabitEthernet0/0
+!  vrrp 10 ip 192.168.10.1
+!  vrrp 10 priority 110          ! VRRP preempts by default
+!
+! ===== GLBP (Cisco, load sharing) on R1 =====
+! interface GigabitEthernet0/0
+!  glbp 10 ip 192.168.10.1
+!  glbp 10 priority 110
+!  glbp 10 preempt
+!  glbp 10 load-balancing round-robin
+
+! verify:
+! show standby brief       show standby           show vrrp brief       show glbp brief
+! show track               debug standby events   (lab only, stop with undebug all)
